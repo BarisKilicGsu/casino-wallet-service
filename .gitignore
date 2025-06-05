@@ -18,15 +18,29 @@ coverage.*
 profile.cov
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 
 # Go workspace file
 go.work
-go.work.sum
 
-# env file
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables
 .env
+
 
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Test files
+tests/
+tools/
+locust/
+curl_examples/
+Case-Study.pdf
+casino-wallet-design.md

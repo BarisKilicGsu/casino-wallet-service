@@ -1,0 +1,174 @@
+swagger: '2.0'
+info:
+  title: Casino Wallet Service API
+  version: 1.0.0
+  description: Casino wallet service API documentation
+
+host: localhost:8080
+basePath: /
+schemes:
+  - http
+
+definitions:
+  HealthResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        enum: [ok, error]
+        description: Service status
+      database:
+        type: string
+        enum: [ok, error]
+        description: Database status
+      timestamp:
+        type: string
+        format: date-time
+        description: Check timestamp
+
+  PlayerResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Player ID
+      wallet_id:
+        type: string
+        description: Wallet ID
+      balance:
+        type: number
+        format: float64
+        description: Balance amount
+      currency:
+        type: string
+        description: Currency type
+
+  AllPlayersResponse:
+    type: object
+    properties:
+      players:
+        type: array
+        items:
+          $ref: '#/definitions/PlayerResponse'
+
+  SuccessResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        x-omitempty: false
+      error:
+        type: string
+  
+
+  EventRequest:
+    type: object
+    required:
+      - req_id
+      - player_id
+      - round_id
+      - session_id
+      - game_code
+      - type
+      - amount
+      - currency
+      - wallet_id
+    properties:
+      req_id:
+        type: string
+      wallet_id:
+        type: string
+      player_id:
+        type: string
+      round_id:
+        type: string
+      session_id:
+        type: string
+      game_code:
+        type: string
+      type:
+        type: string
+        enum: [bet, result]
+      amount:
+        type: number
+        format: float64
+        minimum: 0
+      currency:
+        type: string
+
+paths:
+  /health:
+    get:
+      summary: Check system health status
+      description: Checks database connection and system status
+      responses:
+        '200':
+          description: System is healthy
+          schema:
+            $ref: '#/definitions/HealthResponse'
+        '503':
+          description: System is unhealthy
+          schema:
+            $ref: '#/definitions/HealthResponse'
+
+  /wallet/{player_id}:
+    get:
+      summary: Get player balance
+      parameters:
+        - name: player_id
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/PlayerResponse'
+        '404':
+          description: Player not found
+          schema:
+            $ref: '#/definitions/SuccessResponse'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/SuccessResponse'
+
+  /players:
+    get:
+      summary: List all players
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PlayerResponse'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/SuccessResponse'
+
+  /event:
+    post:
+      summary: Process a new event
+      parameters:
+        - name: event
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EventRequest'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/SuccessResponse'
+        '404':
+          description: Player not found
+          schema:
+            $ref: '#/definitions/SuccessResponse'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/SuccessResponse'

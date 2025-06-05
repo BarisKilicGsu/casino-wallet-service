@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=casino_wallet
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - casino-network
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=casino_wallet
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    networks:
+      - casino-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:latest
+    command: ["-path", "/migrations", "-database", "postgres://postgres:postgres@postgres:5432/casino_wallet?sslmode=disable", "up"]
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - casino-network
+
+networks:
+  casino-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 
